@@ -1,0 +1,121 @@
+#define screenwidth 1226
+#define screenheight 800
+#define total_brick 60
+#define left_par 13
+#define right_par 13
+#define brick_shuru_y 15
+#define brick_width  100
+#define brick_height  20
+#define brick_col 5
+#define brick_row 12
+
+
+struct brick_sructure
+{
+	int brick_x;
+	int brick_y;
+
+
+	int line_top_left[2];
+	int line_top_right[2];
+	int line_bottom_right[2];
+	int line_bottom_left[2];
+
+	bool brick_show = true;
+
+};
+
+brick_sructure brick[total_brick];
+
+
+void brick_coordination_set()
+{
+	int starting_x = left_par;
+	int starting_y = brick_shuru_y;
+
+	int gese_brick = 0;
+
+	for (int i = 0; i<brick_col; i++)
+	{
+		for (int j = 0; j<brick_row; j++)
+		{
+
+			brick[gese_brick].brick_x = starting_x;
+			brick[gese_brick].brick_y = starting_y;
+
+
+			/*setting up line for bricks*/
+			brick[gese_brick].line_bottom_left[0] = starting_x;
+			brick[gese_brick].line_bottom_left[1] = starting_y;
+
+			brick[gese_brick].line_top_left[0] = starting_x;
+			brick[gese_brick].line_top_left[1] = starting_y + brick_height;
+
+
+
+			starting_x += brick_width;
+
+
+			brick[gese_brick].line_bottom_right[0] = starting_x;
+			brick[gese_brick].line_bottom_right[1] = starting_y;
+
+
+			brick[gese_brick].line_top_right[0] = starting_x;
+			brick[gese_brick].line_top_right[1] = starting_y + brick_height;
+
+
+
+			gese_brick++;
+		}
+
+		starting_x = left_par;
+		starting_y += brick_height;
+
+
+	}
+}
+
+
+int rectangle_r = 41;
+int rectangle_g = 41;
+int rectangle_b = 41;
+
+
+int line_r = 255;
+int line_g = 255;
+int line_b = 255;
+
+ void iDraw()
+{
+
+	iClear();
+
+	/*drrawing rectangle*/
+	for (int i = 0; i < total_brick; i++)
+	{
+		if (brick[i].brick_show)
+		{
+			iSetColor(rectangle_r, rectangle_g, rectangle_b);
+			iFilledRectangle(brick[i].brick_x, brick[i].brick_y, brick_width, brick_height);
+		}
+	}
+
+	/*drawing line for respective rectangle*/
+	for (int i = 0; i < total_brick; i++)
+	{
+		if (brick[i].brick_show)
+		{
+
+
+			iSetColor(line_r, line_g, line_b);
+
+			iLine(brick[i].line_top_left[0], brick[i].line_top_left[1], brick[i].line_top_right[0], brick[i].line_top_right[1]);
+			iLine(brick[i].line_top_left[0], brick[i].line_top_left[1], brick[i].line_bottom_left[0], brick[i].line_bottom_left[1]);
+			iLine(brick[i].line_bottom_left[0], brick[i].line_bottom_left[1], brick[i].line_bottom_right[0], brick[i].line_bottom_right[1]);
+			iLine(brick[i].line_bottom_right[0], brick[i].line_bottom_right[1], brick[i].line_top_right[0], brick[i].line_top_right[1]);
+		}
+	}
+
+}
+
+
