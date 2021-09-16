@@ -198,6 +198,8 @@ void drawing_brick_lines()
 	}
 }
 
+
+
 void iDraw()
 {
 
