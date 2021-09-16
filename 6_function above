@@ -1,0 +1,618 @@
+#include<iostream>
+using namespace std;
+#include "iGraphics.h"
+
+#define screenwidth 1227
+#define screenheight 800
+#define function_speed 25
+#define total_brick 60
+#define left_par 14
+#define right_par 13
+#define bottom_par 15
+#define brick_shuru_y 15
+#define brick_width  100
+#define brick_height  25
+#define brick_col 5
+#define brick_row 12
+
+
+/*structure of bricks*/
+struct brick_sructure
+{
+	int brick_x;
+	int brick_y;
+
+
+	int line_top_left[2];
+	int line_top_right[2];
+	int line_bottom_right[2];
+	int line_bottom_left[2];
+
+	bool brick_show = true;
+
+};
+
+
+
+/*rectangle color code*/
+int rectangle_r = 82;
+int rectangle_g = 82;
+int rectangle_b = 82;
+
+
+/*brick boundary line color code*/
+int line_r = 255;
+int line_g = 255;
+int line_b = 255;
+
+
+/*background image address*/
+char bg[1][20] = {"image\\final_bg.bmp"};
+
+/*boat image address*/
+char boat[1][20] = { "image\\boatfinal.bmp" };
+
+
+/* boat original image size
+image x = 286px
+ image y = 215px;
+*/
+
+
+/*boat main image coordination*/
+int boat_image_x = 480; // 613-(286/2); // 613 = half of screenwidth, 286 = boat bottom surface length
+int boat_image_y = 565;
+
+
+/*saving movement of boat (original image)*/
+int boat_image_movement_x = boat_image_x;
+int boat_image_movement_y = boat_image_y;
+
+
+
+/*boat bottom surface coordination*/
+int boat_bottom_left_main_x = 499;
+int boat_bottom_right_main_x = 710;
+int boat_bottom_main_y = 625;
+
+int boat_bottom_left_x = boat_bottom_left_main_x;
+int boat_bottom_right_x = boat_bottom_right_main_x;
+int boat_bottom_y = boat_bottom_main_y;
+
+
+/*boat bottom surface length*/
+int boat_bottom_length = boat_bottom_right_x - boat_bottom_left_x; // = 211;
+
+
+/*boat movement with keyboard*/
+int boat_keyboard_dx = 20;
+
+
+/*ball*/
+int ball_radius = 13;
+int ball_x = (boat_bottom_length / 2) + boat_bottom_left_x;
+int ball_y = boat_bottom_y - ball_radius;
+int ball_main_dx = 7;
+int ball_main_dy = 10;
+int ball_dx = ball_main_dx;
+int ball_dy = ball_main_dy;
+
+
+bool ball_movement_on = false;
+
+
+/*Music*/
+bool musicon = false;
+
+/*taking a brick structure*/
+brick_sructure brick[total_brick];
+
+
+
+/*added functions*/
+
+
+void background_image_set();
+void boat_image_set();
+void drawing_brick_rectangle();
+void drawing_brick_lines();
+void drawing_ball();
+
+
+
+void right_key_movement();
+void left_key_movement();
+
+
+
+void brick_coordination_set();
+
+
+void change();
+
+void brick_collusion();
+
+void ball_movement_left();
+void ball_movement_right();
+void ball_movement_down();
+void ball_movement_up();
+
+
+bool game_over();
+void new_start();
+
+
+
+
+void iDraw()
+{
+
+	iClear();
+
+	background_image_set();
+	boat_image_set();
+	drawing_brick_rectangle();
+	drawing_brick_lines();
+	drawing_ball();
+
+}
+
+void iMouseMove(int mx, int my){}
+void iPassiveMouseMove(int mx, int my){}
+void iMouse(int button, int state, int mx, int my){}
+
+
+
+void iKeyboard(unsigned char key)
+{
+	if (key == ' ')
+	{
+		ball_movement_on = true;
+	}
+	if (key == 'w')
+	{
+		musicon = true;
+		PlaySound("music\\ocean.wav", NULL, SND_LOOP | SND_ASYNC);
+	}
+}
+
+
+void iSpecialKeyboard(unsigned char key)
+{
+
+	if (key == GLUT_KEY_RIGHT) right_key_movement();
+	if (key == GLUT_KEY_LEFT)  left_key_movement();
+	
+}
+
+
+int main()
+{
+	if (musicon)
+	PlaySound("music\\ocean.wav", NULL, SND_LOOP | SND_ASYNC);
+	iSetTimer(function_speed, change);
+	iInitialize(screenwidth, screenheight, "IN YOUR SERVICE");
+	brick_coordination_set();
+	iStart();
+	return 0;
+}
+
+
+
+
+
+////////////////////////////////////////// BACKGROUND IMAGE SET //////////////////////////////////////////////////
+
+void background_image_set()
+{
+	iShowBMP(0, 0, bg[0]);
+}
+
+
+
+
+
+
+
+////////////////////////////////////////////// BOAT IMAGE SET ////////////////////////////////////////////////////
+
+void boat_image_set()
+{
+
+	iShowBMP2(boat_image_movement_x, boat_image_movement_y, boat[0], 255);
+
+
+	iSetColor(0, 0, 0);
+	//iLine(499, 0, 499, 800);
+	//iLine(710, 0, 710, 800);
+	//iLine(0, 625, 1227, 625);
+
+	//iLine(0, 14, 1200, 14);
+
+
+	// boat length = 710 - 499 = 211
+	// boat image x - boat bottom x = 625 - 480 = 145; 
+}
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////// BALL DRAW /////////////////////////////////////////////////////////
+
+void drawing_ball()
+{
+	iSetColor(0, 0, 0);
+	iFilledCircle(ball_x, ball_y, ball_radius, 1000);
+}
+
+
+
+
+
+/////////////////////////////////////////////////// BRICK DRAW //////////////////////////////////////////////////////
+
+void drawing_brick_rectangle()
+{
+
+	for (int i = 0; i < total_brick; i++)
+	{
+		if (brick[i].brick_show)
+		{
+			iSetColor(rectangle_r, rectangle_g, rectangle_b);
+			iFilledRectangle(brick[i].brick_x, brick[i].brick_y, brick_width, brick_height);
+		}
+	}
+
+}
+
+
+
+
+
+////////////////////////////////////////// BRICK BOUNDARY LINES DRAW //////////////////////////////////////////////////
+
+void drawing_brick_lines()
+{
+
+	for (int i = 0; i < total_brick; i++)
+	{
+		if (brick[i].brick_show)
+		{
+
+			iSetColor(line_r, line_g, line_b);
+
+			iLine(brick[i].line_top_left[0], brick[i].line_top_left[1], brick[i].line_top_right[0], brick[i].line_top_right[1]);
+			iLine(brick[i].line_top_left[0], brick[i].line_top_left[1], brick[i].line_bottom_left[0], brick[i].line_bottom_left[1]);
+			iLine(brick[i].line_bottom_left[0], brick[i].line_bottom_left[1], brick[i].line_bottom_right[0], brick[i].line_bottom_right[1]);
+			iLine(brick[i].line_bottom_right[0], brick[i].line_bottom_right[1], brick[i].line_top_right[0], brick[i].line_top_right[1]);
+		}
+	}
+}
+
+
+
+
+
+
+
+////////////////////////////////////////// KEYBOARD RIGHT KEY MOVEMENT ////////////////////////////////////////////
+
+void right_key_movement()
+{
+
+	int total = boat_bottom_right_x + boat_keyboard_dx;
+
+	int ball_move;
+
+	if (total <= (screenwidth - right_par))
+	{
+		boat_image_movement_x += boat_keyboard_dx;
+		boat_bottom_left_x += boat_keyboard_dx;
+		boat_bottom_right_x += boat_keyboard_dx;
+		ball_move = boat_keyboard_dx;
+
+	}
+
+	else
+	{
+
+		int dif = screenwidth - right_par - 3 - total + boat_keyboard_dx;
+
+		boat_image_movement_x += dif;
+		boat_bottom_left_x += dif;
+		boat_bottom_right_x += dif;
+		ball_move = dif;
+	}
+
+	if (ball_movement_on == false) ball_x += ball_move;
+
+
+}
+
+
+
+
+
+
+
+//////////////////////////////////////////// KEYBOARD LEFT KEY MOVEMENT ////////////////////////////////////////////
+
+void left_key_movement()
+{
+	int total = boat_bottom_left_x - boat_keyboard_dx;
+
+	int ball_move;
+	if (total >= left_par + 5)
+	{
+		boat_image_movement_x -= boat_keyboard_dx;
+		boat_bottom_left_x -= boat_keyboard_dx;
+		boat_bottom_right_x -= boat_keyboard_dx;
+		ball_move = boat_keyboard_dx;
+
+	}
+	else
+	{
+
+		int dif = boat_bottom_left_x - left_par - 5;
+
+		boat_image_movement_x -= dif;
+		boat_bottom_left_x -= dif;
+		boat_bottom_right_x -= dif;
+		ball_move = dif;
+	}
+
+	if (ball_movement_on == false) ball_x -= ball_move;
+
+}
+
+
+
+
+
+
+////////////////////////////////////////// GIVING COORDINATION TO BRICKS //////////////////////////////////////////
+
+void brick_coordination_set()
+{
+	int starting_x = left_par;
+	int starting_y = brick_shuru_y;
+
+	int gese_brick = 0;
+
+	for (int i = 0; i<brick_col; i++)
+	{
+		for (int j = 0; j<brick_row; j++)
+		{
+
+			brick[gese_brick].brick_x = starting_x;
+			brick[gese_brick].brick_y = starting_y;
+
+
+			/*setting up line for bricks*/
+			brick[gese_brick].line_bottom_left[0] = starting_x;
+			brick[gese_brick].line_bottom_left[1] = starting_y;
+
+			brick[gese_brick].line_top_left[0] = starting_x;
+			brick[gese_brick].line_top_left[1] = starting_y + brick_height;
+
+
+
+			starting_x += brick_width;
+
+
+			brick[gese_brick].line_bottom_right[0] = starting_x;
+			brick[gese_brick].line_bottom_right[1] = starting_y;
+
+
+			brick[gese_brick].line_top_right[0] = starting_x;
+			brick[gese_brick].line_top_right[1] = starting_y + brick_height;
+
+
+
+			gese_brick++;
+		}
+
+		starting_x = left_par;
+		starting_y += brick_height;
+
+
+	}
+}
+
+
+
+
+
+
+
+////////////////////////////////////////////// CHANGE /////////////////////////////////////////////////////////////
+
+void change()
+{
+
+	if (ball_movement_on)
+	{
+		brick_collusion();
+
+		if (ball_dx < 0) ball_movement_left();
+		else ball_movement_right();
+
+
+		if (ball_dy < 0) ball_movement_down();
+		else ball_movement_up();
+	}
+
+
+}
+
+
+
+
+
+
+
+////////////////////////////////////////////// BRICK COLLUSION ////////////////////////////////////////////////////
+
+void brick_collusion()
+{
+
+	for (int i = 0; i < total_brick; i++)
+	{
+		if (brick[i].brick_show)
+		{
+			if (ball_x >= brick[i].brick_x && ball_x <= brick[i].brick_x + brick_width)
+			{
+				if (ball_y >= brick[i].brick_y && ball_y <= brick[i].brick_y + brick_height)
+				{
+					brick[i].brick_show = false;
+					ball_dy *= (-1);
+				}
+
+			}
+
+			else if (ball_y >= brick[i].brick_y && ball_y <= brick[i].brick_y + brick_height)
+			{
+				if (ball_x >= brick[i].brick_x && ball_x <= brick[i].brick_x + brick_width)
+				{
+					brick[i].brick_show = false;
+					ball_x *= (-1);
+				}
+
+			}
+		}
+	}
+
+}
+
+
+
+
+
+//////////////////////////////////////////////// BALL MOVEMENT TO LEFT ///////////////////////////////////////////////////////////////////////////
+
+void ball_movement_left()
+{
+	int comp = ball_x - ball_radius + ball_dx;
+	if (comp < left_par)
+	{
+		int dif = (ball_x - ball_radius - left_par);
+		ball_x -= dif;
+		ball_dx = ball_main_dx;
+	}
+	else
+	{
+		ball_x += ball_dx;
+	}
+}
+
+
+
+//////////////////////////////////////// BALL MOVEMENT TO RIGHT /////////////////////////////////////////////////////////////////
+
+void ball_movement_right()
+{
+	int comp = ball_x + ball_radius + ball_dx;
+
+	if (comp > screenwidth - right_par)
+	{
+		int dif = screenwidth - right_par - ball_x - ball_radius;
+		ball_x += dif;
+		ball_dx = -ball_main_dx;
+	}
+	else
+	{
+		ball_x += ball_dx;
+
+
+	}
+
+}
+
+
+
+
+///////////////////////////////////////////// BALL MOVEMENT TO DOWN ////////////////////////////////////////////////
+
+void ball_movement_down()
+{
+	int comp = ball_y - ball_radius + ball_dy;
+
+	if (comp < bottom_par)
+	{
+		int dif = ball_y - ball_radius - bottom_par;
+		ball_y -= dif;
+		ball_dy = ball_main_dy;
+	}
+	else ball_y += ball_dy;
+
+}
+
+
+
+////////////////////////////////////////////// BALL MOVEMENT TO UP //////////////////////////////////////////////////////////////////////
+
+void ball_movement_up()
+{
+	int comp = ball_y + ball_radius + ball_dy;
+
+	if (comp > boat_bottom_y)
+	{
+		bool check = game_over();
+
+		if (check == 0)
+		{
+			new_start();
+		}
+
+		int dif = boat_bottom_y - ball_y - ball_radius;
+		ball_y += dif;
+		ball_dy = -ball_main_dy;
+	}
+	else ball_y += ball_dy;
+
+}
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////////// GAME OVER //////////////////////////////////////////////////////////////////////////////
+
+bool game_over()
+{
+	if (ball_x >= boat_bottom_left_x && ball_x <= boat_bottom_right_x)return true;
+	return false;
+}
+
+
+
+//////////////////////////////////////////////////////////////////// NEW START //////////////////////////////////////////////////////////////////////////////
+
+void new_start()
+{
+
+	boat_image_movement_x = boat_image_x;
+	boat_image_movement_y = boat_image_y;
+
+
+	boat_bottom_left_x = boat_bottom_left_main_x;
+	boat_bottom_right_x = boat_bottom_right_main_x;
+	boat_bottom_y = boat_bottom_main_y;
+
+
+
+	boat_bottom_length = boat_bottom_right_x - boat_bottom_left_x;
+
+	ball_x = (boat_bottom_length / 2) + boat_bottom_left_x;
+	ball_y = boat_bottom_y - ball_radius;
+	ball_dx = ball_main_dx;
+	ball_dy = ball_main_dy;
+
+	ball_movement_on = false;
+
+}
