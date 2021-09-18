@@ -4,7 +4,7 @@ using namespace std;
 
 #define screenwidth 1227
 #define screenheight 800
-#define function_speed 105
+#define function_speed 15
 #define total_brick 60
 #define left_par 14
 #define right_par 13
@@ -454,7 +454,7 @@ void change()
 			if (ball_dx < 0) ball_movement_left();
 			else ball_movement_right();
 		}
-		
+
 
 		brick_collusion();
 
