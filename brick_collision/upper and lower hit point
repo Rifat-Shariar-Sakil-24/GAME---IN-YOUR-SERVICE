@@ -1,0 +1,79 @@
+bool brick_collusion()
+{
+	bool brick_vangse = 0;
+	
+
+	if (brick_exact_vangse)
+	{
+		
+
+		brick[brick_exact_vangse-1].brick_show = false;
+
+		ball_x += ball_dx;
+		ball_dy *= (-1);
+		ball_y += ball_dy;
+
+		brick_exact_vangse = 0;
+
+		return 1;
+	}
+
+	
+
+	brick_exact_vangse = 0;
+	for (int i = 0; i < total_brick; i++)
+	{
+		if (brick[i].brick_show)
+		{
+			if (ball_x >= brick[i].brick_x && ball_x <= brick[i].brick_x + brick_width)
+			{
+				
+				bool chk = 0;
+
+				if (ball_dy < 0)
+				{
+					// check upper ball
+					if (ball_y - ball_radius + ball_dy - brick[i].brick_y >= 0.001 && ball_y - ball_radius + ball_dy - brick[i].brick_y - brick_height <= 0.001) chk = 1;
+				}
+
+				else if (ball_dy>0)
+				{
+					// checks lower ball
+					if ((brick[i].brick_y + brick_height) -(ball_y + ball_radius + ball_dy) >= 0.001 && ball_y + ball_radius + ball_dy - brick[i].brick_y  >= 0.001) chk = 1;
+				}
+				
+				if (chk)
+				{
+				   // nect a collusion hobe
+
+
+					float new_ball_dy; // next collusion er jonno new ball-dy
+
+					if (ball_dy < 0)
+					{
+						new_ball_dy = -(ball_y - ball_radius - brick[i].brick_y - brick_height);
+					}
+					else
+					{
+						new_ball_dy = abs(ball_y + ball_radius - brick[i].brick_y);
+					}
+
+					float new_ball_dx = (ball_dx*new_ball_dy) / ball_dy; // new ball_dy er jonno new ball_dx
+
+					brick_vangse = 1;
+
+					/*new balldx balldy add korbo exact ball_x ball_y pawar jonno*/
+					ball_x += new_ball_dx;
+					ball_y += new_ball_dy;;
+
+					brick_exact_vangse = i + 1; // position jetay attack korbe
+					break;
+				}
+
+			}
+
+		}
+	}
+	return brick_vangse;
+}
+
